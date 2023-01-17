@@ -1,0 +1,49 @@
+body {
+    overflow-y: scroll;
+}
+
+body.modal-open {
+    overflow-y: hidden;
+}
+
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    opacity: 0.5;
+    background-color: black;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100;
+    text-align: center;
+}
+
+#loading-text {
+    position: absolute;
+    top: 50%;
+}
+
+.view {
+    display: none;
+}
+
+#type-list tr {
+    cursor: pointer;
+}
+
+.mb-not-last-1:not(:last-child) {
+    margin-bottom: 0.25rem !important;
+}
+
+#messages {
+    position: fixed;
+    bottom: 15px;
+    right: 30px;
+    z-index: 10;
+    width: 400px;
+}
+
+#export-log {
+    max-height: 500px;
+    background: #ff9b9b;
+}
