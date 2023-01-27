@@ -80,7 +80,7 @@ function recursiveExport(permID) {
     const options = new CustomASServiceExecutionOptions();
     options.withParameter('method', 'recursiveExport');
     options.withParameter('permID', permID);
-    v3.executeCustomASService(new CustomASServiceCode("recursive-export-api"), options).then(res => {
+    v3.executeCustomASService(new CustomASServiceCode("openbismantic-api"), options).then(res => {
         document.getElementById('export-log').innerText = '';
         saveFile(res, res[permID].code.toLowerCase());
     }).fail(e => {
