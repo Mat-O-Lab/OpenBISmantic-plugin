@@ -8,8 +8,6 @@ from ch.ethz.sis.openbis.generic.asapi.v3.dto.property.fetchoptions import Prope
 from ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id import SamplePermId
 from ch.ethz.sis.openbis.generic.asapi.v3.dto.property import DataType
 
-import logger
-
 
 property_assignment_fetch_options = PropertyAssignmentFetchOptions()
 property_assignment_fetch_options.withPropertyType()
