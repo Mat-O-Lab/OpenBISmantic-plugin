@@ -1,3 +1,6 @@
+import json
+import subprocess
+import tempfile
 import traceback
 import logger
 
@@ -7,6 +10,8 @@ from ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.fetchoptions import SampleT
 from ch.ethz.sis.openbis.generic.asapi.v3.dto.property.fetchoptions import PropertyAssignmentFetchOptions
 from ch.ethz.sis.openbis.generic.asapi.v3.dto.sample.id import SamplePermId
 from ch.ethz.sis.openbis.generic.asapi.v3.dto.property import DataType
+from ch.ethz.sis.openbis.generic.server.sharedapi.v3.json import GenericObjectMapper
+from java.util import List
 
 
 property_assignment_fetch_options = PropertyAssignmentFetchOptions()
@@ -33,10 +38,22 @@ sample_fetch_options.withTags()
 sample_fetch_options.withTypeUsing(sample_type_fetch_options)
 
 
+def parse_json(data, format='ntriples'):
+    with tempfile.NamedTemporaryFile() as f:
+        mapper = GenericObjectMapper()
+        f.write(mapper.valueToTree(data).toString())
+        f.seek(0)
+        result = subprocess.check_output(['openbis-json-parser', f.name, '-f', format])
+    return result
+
+
 def recursive_export(context, parameters, seen_perm_ids=()):
-    perm_id = SamplePermId(parameters.get('permID'))
-    seen_perm_ids = seen_perm_ids + (perm_id,)
-    samples = context.applicationService.getSamples(context.sessionToken, [perm_id], sample_fetch_options)
+    if isinstance(parameters.get('permID'), List):
+        perm_ids = tuple(map(lambda e: SamplePermId(e), parameters.get('permID')))
+    else:
+        perm_ids = (SamplePermId(parameters.get('permID')),)
+    seen_perm_ids = seen_perm_ids + perm_ids
+    samples = context.applicationService.getSamples(context.sessionToken, perm_ids, sample_fetch_options)
     additional_samples = {}
     for sample_id, sample in samples.items():
         sample_properties = sample.getProperties()
@@ -50,6 +67,8 @@ def recursive_export(context, parameters, seen_perm_ids=()):
                 additional_samples.update(recursive_export(context, {'permID': other_perm_id}, seen_perm_ids))
                 logger.info(property_type.getCode(), other_perm_id)
     samples.update(additional_samples)
+    if parameters.get('format', 'json') != 'json':
+        return parse_json(samples, format=parameters.get('format'))
     return samples
 
 

@@ -69,20 +69,28 @@ function saveFile(result, fileName) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${fileName}.json`;
+    link.download = fileName;
     link.click();
     URL.revokeObjectURL(url);
 }
 
-function recursiveExport(permID) {
+function recursiveExport(permID, format) {
     if (permID === undefined)
         permID = document.getElementById('query-input').value;
+    if (format === undefined)
+        format = document.getElementById('format-input').value;
     const options = new CustomASServiceExecutionOptions();
     options.withParameter('method', 'recursiveExport');
     options.withParameter('permID', permID);
+    options.withParameter('format', format);
     v3.executeCustomASService(new CustomASServiceCode("openbismantic-api"), options).then(res => {
         document.getElementById('export-log').innerText = '';
-        saveFile(res, res[permID].code.toLowerCase());
+        if (format === 'json')
+            saveFile(res, `${res[permID].code.toLowerCase()}.json`);
+        else if (format === 'ttl')
+            saveFile(res, `${permID}.ttl`);
+        else if (format === 'json-ld')
+            saveFile(res, `${permID}.json`);
     }).fail(e => {
         document.getElementById('export-log').innerText = e.data.message + '\n\n' + e.data.stackTrace;
     });
