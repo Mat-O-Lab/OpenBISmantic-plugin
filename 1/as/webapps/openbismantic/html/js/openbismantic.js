@@ -64,8 +64,9 @@ function initUi() {
 
 function saveFile(result, fileName) {
     console.log('saving file', fileName);
-    const data = JSON.stringify(stjsUtil.decycle(result), null, 2);
-    const blob = new Blob([data], {type: 'application/json;charset=utf-8'});
+    if (result instanceof Object)
+        result = JSON.stringify(stjsUtil.decycle(result), null, 2);
+    const blob = new Blob([result], {type: 'application/json;charset=utf-8'});
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
