@@ -64,8 +64,9 @@ function initUi() {
 
 function saveFile(result, fileName) {
     console.log('saving file', fileName);
-    if (result instanceof Object)
+    if (result instanceof Object) {
         result = JSON.stringify(stjsUtil.decycle(result), null, 2);
+    }
     const blob = new Blob([result], {type: 'application/json;charset=utf-8'});
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -84,8 +85,14 @@ function recursiveExport(permID, format) {
     options.withParameter('method', 'recursiveExport');
     options.withParameter('permID', permID);
     options.withParameter('format', format);
+    options.withParameter('baseURL', window.location.origin);
     v3.executeCustomASService(new CustomASServiceCode("openbismantic-api"), options).then(res => {
-        document.getElementById('export-log').innerText = '';
+        if (res.status === 'FAILED') {
+            document.getElementById('export-log').innerText = res.error;
+            return;
+        } else {
+            document.getElementById('export-log').innerText = '';
+        }
         if (format === 'json')
             saveFile(res, `${res[permID].code.toLowerCase()}.json`);
         else if (format === 'ttl')
@@ -130,4 +137,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     initUi();
 });
-

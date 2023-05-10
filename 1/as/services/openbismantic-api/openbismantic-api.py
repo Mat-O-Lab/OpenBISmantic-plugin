@@ -38,12 +38,21 @@ sample_fetch_options.withTags()
 sample_fetch_options.withTypeUsing(sample_type_fetch_options)
 
 
-def parse_json(data, format='ntriples'):
+def parse_json(data, format='ntriples', base_url=None):
     with tempfile.NamedTemporaryFile() as f:
         mapper = GenericObjectMapper()
         f.write(mapper.valueToTree(data).toString())
         f.seek(0)
-        result = subprocess.check_output(['openbis-json-parser', f.name, '-f', format])
+        with tempfile.NamedTemporaryFile() as out_f:
+            cmd = ['openbis-json-parser', f.name, '-o', out_f.name, '-f', format]
+            if base_url is not None:
+                cmd.extend(['-b', base_url])
+            try:
+                subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            except subprocess.CalledProcessError as e:
+                raise Exception(e.output)
+            out_f.seek(0)
+            result = out_f.read()
     return result
 
 
@@ -68,7 +77,7 @@ def recursive_export(context, parameters, seen_perm_ids=()):
                 logger.info(property_type.getCode(), other_perm_id)
     samples.update(additional_samples)
     if parameters.get('format', 'json') != 'json':
-        return parse_json(samples, format=parameters.get('format'))
+        return parse_json(samples, format=parameters.get('format'), base_url=parameters.get('baseURL'))
     return samples
 
 
